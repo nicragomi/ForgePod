@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;background:#0f141c;}
+  @keyframes fpPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  input,button{font-family:inherit;}
+  button:focus-visible,input:focus-visible{outline:2px solid #6ba0ff;outline-offset:2px;}
+  input::placeholder{color:#5f6b7d;}
+  a.fp-link{text-decoration:none;color:inherit;}
+  .fp-sug:hover{background:rgba(255,255,255,.08);}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" rx="22" fill="#3b82f6"/><circle cx="38" cy="38" r="8.5" fill="#fff"/><circle cx="62" cy="38" r="8.5" fill="#fff"/><circle cx="38" cy="62" r="8.5" fill="#fff"/><circle cx="62" cy="62" r="8.5" fill="#fff"/></svg></template>
+<div style="min-height:100vh;background:radial-gradient(1200px 700px at 14% -8%, #1a2230 0%, #0f141c 55%);font-family:'Inter',system-ui,-apple-system,sans-serif;color:#f7fafc;padding-bottom:56px;">
+
+  <sc-if value="{{ showChrome }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.07);background:rgba(15,20,28,.7);backdrop-filter:blur(10px);position:sticky;top:0;z-index:30;">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div onClick="{{ goDashboard }}" style="display:flex;align-items:baseline;gap:7px;cursor:pointer;">
+        <span style="font-weight:800;font-size:17px;letter-spacing:-.02em;">ForgePod</span>
+        <span onClick="{{ goPatchNotes }}" title="What's new" style="font-size:11px;font-weight:700;color:#7c8696;font-variant-numeric:tabular-nums;cursor:pointer;border-bottom:1px dotted rgba(255,255,255,.25);">{{ appVersion }}</span>
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;border:1px solid rgba(74,222,128,.3);background:rgba(74,222,128,.08);font-size:12px;font-weight:600;color:#7ee2a8;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#4ade80;animation:fpPulse 2s ease-in-out infinite;"></span>Offline &middot; runs in your browser
+      </div>
+      <div onClick="{{ goDashboard }}" style="font-size:13px;font-weight:700;color:#9aa6b8;cursor:pointer;">Events</div>
+      <div onClick="{{ goCommunity }}" style="font-size:13px;font-weight:700;color:#9aa6b8;cursor:pointer;">Community</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#9aa6b8;font-weight:600;">
+      <sc-if value="{{ crumbEvent }}" hint-placeholder-val="{{ false }}">
+        <span onClick="{{ goDashboard }}" style="cursor:pointer;">Events</span>
+        <span style="opacity:.5;">/</span>
+        <span onClick="{{ openCurrentEvent }}" style="cursor:pointer;color:#f7fafc;">{{ crumbEventName }}</span>
+      </sc-if>
+      <sc-if value="{{ crumbRound }}" hint-placeholder-val="{{ false }}">
+        <span style="opacity:.5;">/</span>
+        <span style="color:#f7fafc;">{{ crumbRoundName }}</span>
+      </sc-if>
+    </div>
+  </div>
+  </sc-if>
+
+  <!-- ============ DASHBOARD ============ -->
+  <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:880px;margin:32px auto 0;padding:0 24px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:26px;font-weight:800;letter-spacing:-.025em;">Your events</div>
+          <div style="font-size:13px;color:#9aa6b8;margin-top:5px;">Everything is stored on this device. No internet needed.</div>
+        </div>
+        <button onClick="{{ toggleCreate }}" style="min-height:42px;padding:0 18px;border-radius:11px;border:none;background:#3b82f6;color:#fff;font-weight:800;font-size:14px;cursor:pointer;">{{ createBtnLabel }}</button>
+      </div>
+
+      <sc-if value="{{ showCreate }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px;margin-top:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:200px;">
+            <label style="display:block;font-size:12px;font-weight:700;color:#9aa6b8;margin-bottom:6px;">Event name</label>
+            <input value="{{ newName }}" onInput="{{ onNewName }}" placeholder="e.g. Friday Night Commander" style="width:100%;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#f7fafc;font-size:15px;font-weight:600;" />
+          </div>
+          <button onClick="{{ onCreateEvent }}" style="min-height:44px;padding:0 18px;border-radius:11px;border:none;background:#3b82f6;color:#fff;font-weight:800;font-size:14px;cursor:pointer;">Create event</button>
+        </div>
+      </sc-if>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:22px;">
+        <sc-for list="{{ events }}" as="ev" hint-placeholder-count="2">
+          <div onClick="{{ ev.onOpen }}" style="background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;">
+            <div style="min-width:0;">
+              <div style="font-size:16px;font-weight:800;">{{ ev.name }}</div>
+              <div style="font-size:13px;color:#9aa6b8;margin-top:3px;">{{ ev.meta }}</div>
+            </div>
+            <span style="padding:5px 11px;border-radius:999px;font-size:11px;font-weight:700;{{ ev.statusStyle }}">{{ ev.status }}</span>
+          </div>
+        </sc-for>
+        <sc-if value="{{ noEvents }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#1a212c;border:1px dashed rgba(255,255,255,.12);border-radius:14px;padding:34px;text-align:center;color:#8390a3;font-size:14px;">No events yet. Create one to get started.</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PATCH NOTES ============ -->
+  <sc-if value="{{ isPatchNotes }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:720px;margin:32px auto 0;padding:0 24px;">
+      <div style="font-size:26px;font-weight:800;letter-spacing:-.025em;">What&rsquo;s new</div>
+      <div style="font-size:13px;color:#9aa6b8;margin-top:5px;">ForgePod {{ currentVersion }} &middot; release notes.</div>
+      <div style="display:flex;flex-direction:column;gap:14px;margin-top:22px;">
+        <sc-for list="{{ patchNotes }}" as="v" hint-placeholder-count="2">
+          <div style="background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;">
+            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+              <span style="font-size:17px;font-weight:800;">{{ v.version }}</span>
+              <span style="font-size:12px;color:#7c8696;">{{ v.date }}</span>
+              <span style="font-size:13px;color:#9aa6b8;font-weight:600;">{{ v.title }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-top:12px;">
+              <sc-for list="{{ v.notes }}" as="n" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;font-size:13px;color:#d4dbe6;line-height:1.45;">
+                  <span style="color:#3b82f6;flex:0 0 auto;">&bull;</span>
+                  <span style="min-width:0;">{{ n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ COMMUNITY ============ -->
+  <sc-if value="{{ isCommunity }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:880px;margin:32px auto 0;padding:0 24px;">
+      <div style="font-size:26px;font-weight:800;letter-spacing:-.025em;">Community</div>
+      <div style="font-size:13px;color:#9aa6b8;margin-top:5px;">Lifetime records across every event on this device. Tap a player for their commander stats.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:22px;">
+        <sc-for list="{{ community }}" as="p" hint-placeholder-count="4">
+          <div onClick="{{ p.onOpen }}" style="background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;">
+            <span style="width:38px;height:38px;border-radius:10px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#7aa2ff;background:rgba(59,130,246,.14);">{{ p.initials }}</span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</div>
+              <div style="font-size:12px;color:#8390a3;margin-top:2px;">{{ p.events }} events &middot; {{ p.record }} W&ndash;L&ndash;D</div>
+            </div>
+            <div style="text-align:right;flex:0 0 auto;">
+              <div style="font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;">{{ p.winPctStr }}</div>
+              <div style="font-size:10px;color:#8390a3;letter-spacing:.1em;text-transform:uppercase;">win rate</div>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ communityEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#1a212c;border:1px dashed rgba(255,255,255,.12);border-radius:14px;padding:34px;text-align:center;color:#8390a3;font-size:14px;">No games recorded yet. Run an event and players show up here.</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PROFILE ============ -->
+  <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:760px;margin:26px auto 0;padding:0 24px;">
+      <div onClick="{{ backToCommunity }}" style="font-size:13px;color:#9bb6ff;cursor:pointer;margin-bottom:16px;">&larr; Community</div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <span style="width:56px;height:56px;border-radius:15px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#7aa2ff;background:rgba(59,130,246,.14);">{{ prof.initials }}</span>
+        <div style="min-width:0;">
+          <div style="font-size:26px;font-weight:800;letter-spacing:-.02em;">{{ prof.name }}</div>
+          <div style="font-size:13px;color:#9aa6b8;margin-top:3px;">{{ prof.events }} events played</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;">
+        <div style="flex:1;min-width:100px;padding:12px 14px;border-radius:12px;background:#1a212c;border:1px solid rgba(255,255,255,.08);"><div style="font-size:22px;font-weight:800;">{{ prof.winPctStr }}</div><div style="font-size:11px;color:#8390a3;margin-top:2px;">Win rate</div></div>
+        <div style="flex:1;min-width:80px;padding:12px 14px;border-radius:12px;background:#1a212c;border:1px solid rgba(255,255,255,.08);"><div style="font-size:22px;font-weight:800;color:#f5b942;">{{ prof.wins }}</div><div style="font-size:11px;color:#8390a3;margin-top:2px;">Wins</div></div>
+        <div style="flex:1;min-width:80px;padding:12px 14px;border-radius:12px;background:#1a212c;border:1px solid rgba(255,255,255,.08);"><div style="font-size:22px;font-weight:800;">{{ prof.losses }}</div><div style="font-size:11px;color:#8390a3;margin-top:2px;">Losses</div></div>
+        <div style="flex:1;min-width:80px;padding:12px 14px;border-radius:12px;background:#1a212c;border:1px solid rgba(255,255,255,.08);"><div style="font-size:22px;font-weight:800;">{{ prof.draws }}</div><div style="font-size:11px;color:#8390a3;margin-top:2px;">Draws</div></div>
+        <sc-if value="{{ profByes }}" hint-placeholder-val="{{ false }}">
+          <div style="flex:1;min-width:80px;padding:12px 14px;border-radius:12px;background:#1a212c;border:1px solid rgba(255,255,255,.08);"><div style="font-size:22px;font-weight:800;color:#7ee2a8;">{{ prof.byes }}</div><div style="font-size:11px;color:#8390a3;margin-top:2px;">Byes</div></div>
+        </sc-if>
+      </div>
+      <div style="font-size:14px;font-weight:800;margin:26px 0 12px;">By commander</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ profCommanders }}" as="c" hint-placeholder-count="3">
+          <div style="background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+              <div style="font-size:15px;font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ c.commander }}</div>
+              <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto;">
+                <span style="font-size:13px;color:#9aa6b8;font-variant-numeric:tabular-nums;">{{ c.record }}</span>
+                <span style="font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;min-width:42px;text-align:right;">{{ c.winPctStr }}</span>
+              </div>
+            </div>
+            <div style="height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:10px;">
+              <div style="height:100%;border-radius:999px;width:{{ c.bar }}%;background:#3b82f6;"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ EVENT ============ -->
+  <sc-if value="{{ isEvent }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:920px;margin:28px auto 0;padding:0 24px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div style="min-width:0;flex:1;">
+          <sc-if value="{{ renaming }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input value="{{ renameValue }}" onInput="{{ onRenameInput }}" style="flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.25);color:#f7fafc;font-size:20px;font-weight:800;" />
+              <button onClick="{{ onRenameSave }}" style="padding:0 16px;min-height:42px;border-radius:10px;border:none;background:#3b82f6;color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Save</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ notRenaming }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:24px;font-weight:800;letter-spacing:-.02em;">{{ ev.name }}</div>
+            <div style="font-size:13px;color:#9aa6b8;margin-top:4px;">{{ ev.meta }}</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;{{ ev.statusStyle }}">{{ ev.status }}</span>
+          <button onClick="{{ onRename }}" style="padding:6px 11px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#c7d0dd;font-size:12px;font-weight:700;cursor:pointer;">Rename</button>
+          <button onClick="{{ onDeleteEvent }}" style="padding:6px 11px;border-radius:8px;border:1px solid rgba(255,107,107,.4);background:rgba(255,107,107,.1);color:#ff9b9b;font-size:12px;font-weight:700;cursor:pointer;">Delete</button>
+        </div>
+      </div>
+
+      <!-- LOBBY (not started) -->
+      <sc-if value="{{ eventNotStarted }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:16px;margin-top:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px;border-bottom:1px solid rgba(255,255,255,.07);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="font-size:15px;font-weight:800;">Players</div>
+              <div style="min-width:28px;height:24px;padding:0 8px;border-radius:8px;background:rgba(59,130,246,.16);color:#7aa2ff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;">{{ playerCount }}</div>
+            </div>
+          </div>
+          <div style="max-height:540px;overflow:auto;">
+            <sc-for list="{{ roster }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid rgba(255,255,255,.05);">
+                <span style="width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#7aa2ff;background:rgba(59,130,246,.14);">{{ p.initials }}</span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.name }}</div>
+                  <div style="font-size:12px;color:#8390a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ p.commander }}</div>
+                </div>
+                <button onClick="{{ p.onRemove }}" style="padding:5px 10px;border-radius:8px;border:1px solid rgba(255,107,107,.4);background:rgba(255,107,107,.1);color:#ff9b9b;font-size:12px;font-weight:700;cursor:pointer;">Remove</button>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noPlayers }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:24px;text-align:center;color:#8390a3;font-size:13px;">No players yet.</div>
+            </sc-if>
+          </div>
+          <div style="padding:14px 18px;border-top:1px solid rgba(255,255,255,.07);">
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+              <div style="position:relative;flex:1;min-width:0;">
+                <input value="{{ addName }}" onInput="{{ onAddName }}" onFocus="{{ onAddNameFocus }}" onBlur="{{ onAddNameBlur }}" placeholder="Player name" autocomplete="off" style="width:100%;padding:10px 11px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#f7fafc;font-size:14px;" />
+                <sc-if value="{{ showNameSuggest }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#1d2734;border:1px solid rgba(255,255,255,.14);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.55);z-index:40;max-height:230px;overflow:auto;">
+                    <sc-for list="{{ nameSuggest }}" as="np" hint-placeholder-count="0">
+                      <div class="fp-sug" onMouseDown="{{ np.onPick }}" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);">
+                        <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ np.name }}</div>
+                        <div style="font-size:11px;color:#8390a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ np.sub }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="position:relative;flex:1;min-width:0;">
+                <input value="{{ addCmd }}" onInput="{{ onAddCmd }}" placeholder="Commander (Scryfall)" autocomplete="off" style="width:100%;padding:10px 11px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#f7fafc;font-size:14px;" />
+                <sc-if value="{{ showCmdSuggest }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:100%;left:0;right:0;margin-top:4px;background:#1d2734;border:1px solid rgba(255,255,255,.14);border-radius:10px;box-shadow:0 14px 34px rgba(0,0,0,.55);z-index:40;max-height:230px;overflow:auto;">
+                    <sc-for list="{{ cmdSuggest }}" as="sug" hint-placeholder-count="0">
+                      <div class="fp-sug" onMouseDown="{{ sug.onPick }}" style="padding:9px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ sug.name }}</div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <button onClick="{{ onAddPlayer }}" style="flex:0 0 auto;padding:0 16px;min-height:42px;border-radius:10px;border:none;background:#3b82f6;color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Add</button>
+            </div>
+            <div style="font-size:11px;color:#7c8696;margin-bottom:12px;">Partners: type the first commander, then <strong style="color:#9aa6b8;">//</strong> and the second &mdash; e.g. Tymna // Thrasios.</div>
+            <button onClick="{{ onStart }}" style="width:100%;min-height:46px;border-radius:12px;border:none;font-weight:800;font-size:14px;cursor:pointer;{{ startStyle }}">{{ startLabel }}</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- STARTED: rounds + actions + standings -->
+      <sc-if value="{{ eventStarted }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;align-items:flex-start;">
+          <div style="flex:1 1 280px;background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;">
+            <div style="padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);font-size:15px;font-weight:800;">Rounds</div>
+            <sc-for list="{{ roundList }}" as="r" hint-placeholder-count="2">
+              <div onClick="{{ r.onOpen }}" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;">
+                <div style="font-size:14px;font-weight:700;">{{ r.label }}</div>
+                <span style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;{{ r.style }}">{{ r.status }}</span>
+              </div>
+            </sc-for>
+            <div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px;">
+              <sc-if value="{{ canPairNext }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onPairNext }}" style="width:100%;min-height:44px;border-radius:11px;border:none;background:#3b82f6;color:#fff;font-weight:800;font-size:14px;cursor:pointer;">Pair next round</button>
+              </sc-if>
+              <sc-if value="{{ canCut }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onCut }}" style="width:100%;min-height:44px;border-radius:11px;border:1px solid rgba(245,185,66,.4);background:rgba(245,185,66,.12);color:#f5b942;font-weight:800;font-size:14px;cursor:pointer;">Cut to Top {{ cutSize }} (finals)</button>
+              </sc-if>
+              <sc-if value="{{ canFinalize }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ onFinalize }}" style="width:100%;min-height:44px;border-radius:11px;border:none;background:#22c55e;color:#06281a;font-weight:800;font-size:14px;cursor:pointer;">Finalize event</button>
+              </sc-if>
+              <sc-if value="{{ pairHint }}" hint-placeholder-val="{{ false }}">
+                <div style="font-size:12px;color:#8390a3;text-align:center;">{{ pairHintText }}</div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="flex:1 1 360px;background:#1a212c;border:1px solid rgba(255,255,255,.08);border-radius:16px;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.07);">
+              <div style="font-size:15px;font-weight:800;">{{ standingsTitle }}</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <button onClick="{{ presentStandings }}" title="Live standings board for a second monitor" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(122,162,255,.35);background:rgba(122,162,255,.1);color:#9bb6ff;font-size:12px;font-weight:700;cursor:pointer;">&#10696; Present</button>
+                <button onClick="{{ onCopyStandings }}" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#c7d0dd;font-size:12px;font-weight:700;cursor:pointer;">{{ copyLabel }}</button>
+                <button onClick="{{ onExportCsv }}" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#c7d0dd;font-size:12px;font-weight:700;cursor:pointer;">CSV</button>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);">
+              <span style="font-size:11px;font-weight:700;color:#c7d0dd;padding:4px 9px;border-radius:8px;background:rgba(255,255,255,.04);">Win <span style="color:#f5b942;font-weight:800;">5</span></span>
+              <span style="font-size:11px;font-weight:700;color:#c7d0dd;padding:4px 9px;border-radius:8px;background:rgba(255,255,255,.04);">Draw <span style="color:#7aa2ff;font-weight:800;">1</span></span>
+              <span style="font-size:11px;font-weight:700;color:#c7d0dd;padding:4px 9px;border-radius:8px;background:rgba(255,255,255,.04);">Bye <span style="color:#7ee2a8;font-weight:800;">5</span></span>
+              <span style="font-size:11px;font-weight:700;color:#c7d0dd;padding:4px 9px;border-radius:8px;background:rgba(255,255,255,.04);">Loss <span style="color:#9aa6b8;font-weight:800;">0</span></span>
+            </div>
+            <sc-for list="{{ standings }}" as="r" hint-placeholder-count="6">
+              <div>
+                <div onClick="{{ r.onToggle }}" style="display:flex;align-items:center;gap:11px;padding:11px 16px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;{{ r.rowStyle }}">
+                  <span style="min-width:24px;height:24px;padding:0 6px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;{{ r.rankStyle }}">{{ r.rank }}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.name }}</div>
+                    <div style="font-size:12px;color:#8390a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.commander }}</div>
+                  </div>
+                  <span style="font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;{{ r.ptsStyle }}">{{ r.points }}</span>
+                  <sc-if value="{{ r.canDrop }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ r.onDrop }}" title="Drop player" style="flex:0 0 auto;padding:3px 8px;border-radius:7px;border:1px solid rgba(255,107,107,.35);background:rgba(255,107,107,.1);color:#ff9b9b;font-size:11px;font-weight:700;cursor:pointer;">Drop</button>
+                  </sc-if>
+                  <span style="width:14px;text-align:center;color:#7c8696;font-size:12px;{{ r.chevronStyle }}">&#9656;</span>
+                </div>
+                <sc-if value="{{ r.expanded }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:14px 16px 16px;background:rgba(0,0,0,.18);border-bottom:1px solid rgba(255,255,255,.06);">
+                    <div style="font-size:13px;line-height:1.5;color:#d4dbe6;">{{ r.narrative }}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+                      <sc-for list="{{ r.metrics }}" as="m" hint-placeholder-count="5">
+                        <span style="font-size:11px;font-weight:700;padding:5px 9px;border-radius:8px;{{ m.style }}">{{ m.label }} {{ m.value }}</span>
+                      </sc-for>
+                    </div>
+                    <div style="font-size:11px;color:#7c8696;margin-top:9px;font-style:italic;">Win rates are game-based (the cEDH OMW% proxy).</div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ hasDropped }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:11px 16px;border-top:1px solid rgba(255,255,255,.06);">
+                <div style="font-size:10px;color:#7c8696;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">Dropped</div>
+                <sc-for list="{{ droppedPlayers }}" as="dp" hint-placeholder-count="0">
+                  <div style="display:flex;align-items:center;gap:10px;padding:5px 0;">
+                    <div style="flex:1;min-width:0;font-size:13px;font-weight:700;color:#9aa6b8;text-decoration:line-through;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ dp.name }}</div>
+                    <button onClick="{{ dp.onReadd }}" style="flex:0 0 auto;padding:4px 10px;border-radius:7px;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.1);color:#7ee2a8;font-size:11px;font-weight:700;cursor:pointer;">Re-add</button>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ noStandings }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:24px;text-align:center;color:#8390a3;font-size:13px;">No results yet.</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- ============ ROUND ============ -->
+  <sc-if value="{{ isRound }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:18px;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06);">
+      <div style="flex:1 1 200px;min-width:0;">
+        <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;">{{ ev.name }}</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;">
+          <span style="font-size:13px;color:#9aa6b8;">{{ roundName }}</span>
+          <button onClick="{{ presentStandings }}" title="Live standings board for a second monitor" style="padding:5px 10px;border-radius:8px;border:1px solid rgba(122,162,255,.35);background:rgba(122,162,255,.1);color:#9bb6ff;font-size:12px;font-weight:700;cursor:pointer;">&#10696; Present standings</button>
+          <button onClick="{{ toggleEditPods }}" title="Swap players between pods before results are in" style="padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#c7d0dd;font-size:12px;font-weight:700;cursor:pointer;">{{ editPodsLabel }}</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:10px 16px;border-radius:14px;background:#171e28;border:1px solid rgba(255,255,255,.07);">
+        <div>
+          <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#9aa6b8;font-weight:700;">Round timer</div>
+          <div style="font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05;">{{ timerDisplay }}</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onClick="{{ toggleTimer }}" style="min-height:40px;padding:0 16px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#f7fafc;font-weight:700;font-size:13px;cursor:pointer;">{{ timerBtnLabel }}</button>
+          <button onClick="{{ resetTimer }}" style="min-height:40px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#9aa6b8;font-weight:600;font-size:13px;cursor:pointer;">Reset</button>
+          <button onClick="{{ popOutTimer }}" title="Fullscreen timer for a projector or second screen" style="min-height:40px;padding:0 14px;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#9aa6b8;font-weight:600;font-size:13px;cursor:pointer;">&#10696; Pop out</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="min-width:150px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+            <span style="color:#9aa6b8;font-weight:600;">Pods reported</span>
+            <span style="font-weight:700;font-variant-numeric:tabular-nums;">{{ reportedCount }} / {{ podCount }}</span>
+          </div>
+          <div style="height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;">
+            <div style="height:100%;border-radius:999px;width:{{ progressPct }};background:#3b82f6;transition:width .3s ease;"></div>
+          </div>
+        </div>
+        <button onClick="{{ onRoundDone }}" style="{{ roundDoneStyle }}">{{ roundDoneLabel }}</button>
+      </div>
+    </div>
+
+    <div style="padding:22px 24px;">
+      <div style="display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));">
+        <sc-for list="{{ pods }}" as="pod" hint-placeholder-count="4">
+          <div style="background:#1a212c;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:14px 14px 12px;display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;">
+              <div style="font-weight:800;font-size:15px;">{{ pod.label }}</div>
+              <span style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;{{ pod.chipStyle }}">{{ pod.statusLabel }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;">
+              <sc-for list="{{ pod.players }}" as="player" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid rgba(255,255,255,.05);">
+                  <div style="width:4px;align-self:stretch;border-radius:2px;min-height:32px;{{ player.barStyle }}"></div>
+                  <div style="width:22px;height:22px;border-radius:6px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#9aa6b8;background:rgba(255,255,255,.05);">{{ player.seat }}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;{{ player.nameStyle }}">{{ player.name }}</div>
+                    <div style="font-size:12px;color:#8390a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ player.commander }}</div>
+                  </div>
+                  <div style="flex:0 0 auto;">
+                    <sc-if value="{{ player.editMode }}" hint-placeholder-val="{{ false }}">
+                      <select onChange="{{ player.onSwap }}" style="padding:7px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:#0d1622;color:#f7fafc;font-size:12px;max-width:140px;cursor:pointer;">
+                        <option value="">Swap with…</option>
+                        <sc-for list="{{ player.swapOptions }}" as="so" hint-placeholder-count="0">
+                          <option value="{{ so.id }}">{{ so.name }}</option>
+                        </sc-for>
+                      </select>
+                    </sc-if>
+                    <sc-if value="{{ player.showWin }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ player.onWin }}" style="min-height:34px;padding:0 13px;border-radius:9px;border:1px solid rgba(245,185,66,.35);background:rgba(245,185,66,.1);color:#f5b942;font-weight:700;font-size:13px;cursor:pointer;">Win</button>
+                    </sc-if>
+                    <sc-if value="{{ player.showPill }}" hint-placeholder-val="{{ false }}">
+                      <span style="display:inline-block;padding:5px 11px;border-radius:8px;font-size:12px;font-weight:700;{{ player.pillStyle }}">{{ player.pillLabel }}</span>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid rgba(255,255,255,.06);">
+              <sc-if value="{{ pod.isUnreported }}" hint-placeholder-val="{{ true }}">
+                <button onClick="{{ pod.onDraw }}" style="min-height:34px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#c7d0dd;font-weight:600;font-size:12px;cursor:pointer;">Declare full draw</button>
+              </sc-if>
+              <sc-if value="{{ pod.isReported }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;">
+                  <span style="font-size:12px;font-weight:600;color:#7ee2a8;">{{ pod.reportedNote }}</span>
+                  <button onClick="{{ pod.onClear }}" style="min-height:34px;padding:0 12px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:transparent;color:#9aa6b8;font-weight:600;font-size:12px;cursor:pointer;">Undo</button>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ TIMER DISPLAY ============ -->
+  <sc-if value="{{ isTimerDisplay }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ tdExit }}" style="position:fixed;top:16px;right:18px;z-index:50;padding:7px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.45);color:#c7d0dd;font-size:12px;font-weight:700;cursor:pointer;">&#10005; Exit</button>
+    <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;">
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.01em;">{{ tdName }}</div>
+      <div style="font-size:14px;color:#7c8696;margin-top:6px;text-transform:uppercase;letter-spacing:.16em;font-weight:700;">{{ tdRound }}</div>
+      <div style="font-size:min(32vw,280px);font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin:20px 0 34px;letter-spacing:-.03em;color:{{ tdColor }};">{{ tdDisplay }}</div>
+      <div style="display:flex;gap:14px;">
+        <button onClick="{{ tdToggle }}" style="min-height:56px;padding:0 40px;border-radius:14px;border:none;background:#3b82f6;color:#fff;font-weight:800;font-size:19px;cursor:pointer;">{{ tdBtnLabel }}</button>
+        <button onClick="{{ tdReset }}" style="min-height:56px;padding:0 30px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);color:#c7d0dd;font-weight:700;font-size:19px;cursor:pointer;">Reset</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ DISPLAY (second monitor) ============ -->
+  <sc-if value="{{ isDisplay }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ exitDisplay }}" style="position:fixed;top:16px;right:18px;z-index:50;padding:7px 12px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.45);color:#c7d0dd;font-size:12px;font-weight:700;cursor:pointer;">&#10005; Exit display</button>
+    <div style="min-height:100vh;padding:30px 40px 48px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:22px;">
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7ee2a8;">
+            <span style="width:9px;height:9px;border-radius:50%;background:#4ade80;animation:fpPulse 1.6s ease-in-out infinite;"></span>Live &middot; updates automatically
+          </div>
+          <div style="font-size:38px;font-weight:800;letter-spacing:-.02em;margin-top:8px;">{{ dispName }}</div>
+          <div style="font-size:17px;color:#9aa6b8;margin-top:4px;">{{ dispSub }}</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span style="font-size:14px;font-weight:700;color:#c7d0dd;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.04);">Win <span style="color:#f5b942;font-weight:800;">5</span></span>
+          <span style="font-size:14px;font-weight:700;color:#c7d0dd;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.04);">Draw <span style="color:#7aa2ff;font-weight:800;">1</span></span>
+          <span style="font-size:14px;font-weight:700;color:#c7d0dd;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.04);">Bye <span style="color:#7ee2a8;font-weight:800;">5</span></span>
+          <span style="font-size:14px;font-weight:700;color:#c7d0dd;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.04);">Loss <span style="color:#9aa6b8;font-weight:800;">0</span></span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <sc-for list="{{ dispRows }}" as="r" hint-placeholder-count="8">
+          <div>
+            <div style="display:flex;align-items:center;gap:18px;padding:14px 20px;border-radius:14px;background:#1a212c;border:1px solid rgba(255,255,255,.07);{{ r.rowStyle }}">
+              <span style="min-width:46px;height:46px;padding:0 10px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;{{ r.rankStyle }}">{{ r.rank }}</span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-size:24px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.name }}</div>
+                <div style="font-size:15px;color:#8390a3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.commander }}</div>
+              </div>
+              <div style="text-align:right;flex:0 0 auto;">
+                <div style="font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;">{{ r.points }}</div>
+                <div style="font-size:11px;color:#8390a3;letter-spacing:.1em;text-transform:uppercase;margin-top:2px;">pts</div>
+              </div>
+            </div>
+            <sc-if value="{{ r.showCut }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:14px;padding:9px 4px;">
+                <div style="flex:1;height:1px;background:#3b82f6;opacity:.4;"></div>
+                <div style="font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#7aa2ff;white-space:nowrap;">{{ dispCutLabel }}</div>
+                <div style="flex:1;height:1px;background:#3b82f6;opacity:.4;"></div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    view: "dashboard",
+    eventId: null,
+    roundIdx: null,
+    showCreate: false,
+    newName: "",
+    addName: "",
+    addCmd: "",
+    addNameFocused: false,
+    cmdSuggestNames: [],
+    displayEventId: null,
+    personKey: null,
+    renameMode: false,
+    renameValue: "",
+    editPods: false,
+    copiedStandings: false,
+    expandId: null,
+    events: [],
+    timerLeft: 0,
+    timerRunning: false,
+    timerKey: null,
+  };
+
+  KEY = "forgepod_app_v1";
+  APP_VERSION = "1.0";
+
+  componentDidMount() {
+    this._seq = 1;
+    let events = [];
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (raw) { const d = JSON.parse(raw); this._seq = d.seq || 1; events = d.events || []; }
+    } catch (e) {}
+    if (!events.length) { this._seq = 1; events = this.seedDemo(); }
+    const init = { events };
+    try {
+      const sp = new URLSearchParams(location.search);
+      if (sp.get("display") === "standings") { init.view = "display"; init.displayEventId = Number(sp.get("ev")); }
+    } catch (e) {}
+    this.setState(init);
+    this._onStorage = (e) => { if (e.key === this.KEY) { try { const d = JSON.parse(e.newValue); this.setState({ events: d.events || [] }); } catch (_) {} } else if (e.key && e.key.indexOf("forgepod_timer_") === 0) { this.forceUpdate(); } };
+    window.addEventListener("storage", this._onStorage);
+    this._t = setInterval(() => {
+      if (this.state.view === "round" || this.state.view === "timerdisplay") this.forceUpdate();
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this._t); if (this._onStorage) window.removeEventListener("storage", this._onStorage); }
+
+  uid() { return this._seq++; }
+  persist() {
+    try { localStorage.setItem(this.KEY, JSON.stringify({ events: this.state.events, seq: this._seq })); } catch (e) {}
+    this.forceUpdate();
+  }
+  curEvent() { return this.state.events.find((e) => e.id === this.state.eventId) || null; }
+
+  // ---------- engine ----------
+  newEvent(name) {
+    return { id: this.uid(), name: name || "Untitled event", format: "swiss", timerMinutes: 75, maxRounds: null, startedAt: null, finishedAt: null, players: [], rounds: [] };
+  }
+  addPlayer(ev, name, commander) {
+    ev.players.push({ id: this.uid(), name: name, commander: commander || "", active: true });
+  }
+  suggestRounds(n) { if (n <= 8) return 3; if (n <= 16) return 4; if (n <= 32) return 5; return 6; }
+
+  seededRng(seed) {
+    let a = (seed >>> 0) || 1;
+    return function () { a |= 0; a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  shuffle(arr, rng) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); const tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; } }
+  cmpTuple(a, b) { for (let i = 0; i < a.length; i++) { if (a[i] < b[i]) return -1; if (a[i] > b[i]) return 1; } return 0; }
+
+  choosePodSizes(n) {
+    if (n <= 0) return { sizes: [], byes: 0 };
+    if (n === 1) return { sizes: [], byes: 1 };
+    if (n === 2) return { sizes: [], byes: 2 };
+    if (n === 5) return { sizes: [4], byes: 1 };
+    let best = null;
+    for (let b = 0; b <= Math.floor(n / 3); b++) { const rem = n - 3 * b; if (rem < 0 || rem % 4 !== 0) continue; const a = rem / 4; if (best === null || b < best.b) best = { b, a }; }
+    if (best) { const s = []; for (let i = 0; i < best.a; i++) s.push(4); for (let i = 0; i < best.b; i++) s.push(3); return { sizes: s, byes: 0 }; }
+    const r = n % 4;
+    if (r === 0) return { sizes: Array(n / 4).fill(4), byes: 0 };
+    if (r === 1) return { sizes: Array((n - 1) / 4).fill(4), byes: 1 };
+    if (r === 2 && n >= 6) { const f = (n - 6) / 4; return { sizes: [...Array(f).fill(4), 3, 3], byes: 0 }; }
+    return { sizes: [...Array((n - 3) / 4).fill(4), 3], byes: 0 };
+  }
+
+  tiedPlacements(seats) { const c = {}; seats.forEach((s) => { if (s.placement != null) c[s.placement] = (c[s.placement] || 0) + 1; }); const out = new Set(); Object.keys(c).forEach((k) => { if (c[k] > 1) out.add(Number(k)); }); return out; }
+
+  alreadyPlayed(ev) {
+    const m = {};
+    ev.rounds.forEach((r) => r.pods.forEach((pod) => { if (pod.isBye) return; const ids = pod.seats.map((s) => s.playerId); ids.forEach((a) => { ids.forEach((b) => { if (a !== b) { (m[a] = m[a] || new Set()).add(b); } }); }); }));
+    return m;
+  }
+  byeHistory(ev) { const s = new Set(); ev.rounds.forEach((r) => r.pods.forEach((pod) => { if (pod.isBye) pod.seats.forEach((x) => s.add(x.playerId)); })); return s; }
+
+  computeStandings(ev) {
+    const active = ev.players.filter((p) => p.active);
+    const ids = active.map((p) => p.id);
+    const nm = {}, cm = {}; active.forEach((p) => { nm[p.id] = p.name; cm[p.id] = p.commander || ""; });
+    const pts = {}, gp = {}, gw = {}, pw = {}; ids.forEach((id) => { pts[id] = 0; gp[id] = 0; gw[id] = 0; pw[id] = 0; });
+    const pods = []; ev.rounds.forEach((r) => r.pods.forEach((p) => pods.push(p)));
+    pods.forEach((pod) => {
+      if (pod.isBye) { pod.seats.forEach((s) => { pts[s.playerId] += 5; gp[s.playerId]++; gw[s.playerId]++; pw[s.playerId]++; }); return; }
+      if (pod.isDraw) { pod.seats.forEach((s) => { pts[s.playerId] += 1; gp[s.playerId]++; }); return; }
+      const tied = this.tiedPlacements(pod.seats);
+      pod.seats.forEach((s) => { if (s.placement == null) return; gp[s.playerId]++; const isTied = tied.has(s.placement); if (s.placement === 1 && !isTied) { gw[s.playerId]++; pw[s.playerId]++; pts[s.playerId] += 5; } else if (s.placement === 1 && isTied) { pts[s.playerId] += 1; } });
+    });
+    const gwp = {}; ids.forEach((id) => gwp[id] = gp[id] ? gw[id] / gp[id] : 0);
+    const opp = {}; ids.forEach((id) => opp[id] = []);
+    pods.forEach((pod) => { if (pod.isBye) return; const pl = pod.isDraw ? pod.seats.map((s) => s.playerId) : pod.seats.filter((s) => s.placement != null).map((s) => s.playerId); pl.forEach((a) => pl.forEach((b) => { if (a !== b && opp[a]) opp[a].push(gwp[b] || 0); })); });
+    const ogwp = {}; ids.forEach((id) => ogwp[id] = opp[id].length ? opp[id].reduce((x, y) => x + y, 0) / opp[id].length : 0);
+    const oogwp = {}; ids.forEach((id) => { const arr = []; pods.forEach((pod) => { if (pod.isBye) return; const pl = pod.isDraw ? pod.seats.map((s) => s.playerId) : pod.seats.filter((s) => s.placement != null).map((s) => s.playerId); if (pl.indexOf(id) < 0) return; pl.forEach((o) => { if (o !== id) arr.push(ogwp[o] || 0); }); }); oogwp[id] = arr.length ? arr.reduce((x, y) => x + y, 0) / arr.length : 0; });
+    const rows = ids.map((id) => ({ playerId: id, name: nm[id], commander: cm[id], points: pts[id], gp: gp[id], gw: gw[id], gwp: gwp[id], ogwp: ogwp[id], oogwp: oogwp[id], podWins: pw[id] }));
+    rows.sort((a, b) => b.points - a.points || b.ogwp - a.ogwp || b.gwp - a.gwp || b.oogwp - a.oogwp || b.podWins - a.podWins || a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+    return rows;
+  }
+
+  pairRound(ev, isFinals, finalsSize) {
+    const active = ev.players.filter((p) => p.active);
+    const rows = this.computeStandings(ev).filter((r) => active.find((p) => p.id === r.playerId));
+    const round = { number: ev.rounds.length + 1, isFinals: !!isFinals, completed: false, pods: [] };
+    let pn = 1;
+    if (isFinals) {
+      const top = rows.slice(0, finalsSize).map((r) => r.playerId);
+      const { sizes } = this.choosePodSizes(top.length);
+      const pods = []; for (let i = 0; i < sizes.length; i++) pods.push([]);
+      let idx = 0;
+      for (let rnd = 0; rnd < Math.max.apply(null, sizes.concat([0])); rnd++) { const order = rnd % 2 === 0 ? sizes.map((_, i) => i) : sizes.map((_, i) => i).reverse(); for (const pi of order) { if (idx >= top.length) break; if (pods[pi].length < sizes[pi]) { pods[pi].push(top[idx++]); } } }
+      pods.forEach((arr) => { round.pods.push({ podNumber: pn++, isBye: false, isDraw: false, seats: arr.map((pid, i) => ({ playerId: pid, seat: i + 1, placement: null })) }); });
+    } else {
+      const { sizes, byes } = this.choosePodSizes(active.length);
+      const rng = this.seededRng(ev.id * 1000 + ev.rounds.length + 1);
+      const orderedIds = rows.map((r) => r.playerId);
+      const byePlayers = this.chooseByePlayers(orderedIds, this.byeHistory(ev), rng, byes);
+      const byeSet = new Set(byePlayers);
+      const podArrays = this.buildPods(rows, sizes, this.alreadyPlayed(ev), rng, byeSet);
+      podArrays.forEach((arr) => { round.pods.push({ podNumber: pn++, isBye: false, isDraw: false, seats: arr.map((pid, i) => ({ playerId: pid, seat: i + 1, placement: null })) }); });
+      byePlayers.forEach((pid) => { round.pods.push({ podNumber: pn++, isBye: true, isDraw: false, seats: [{ playerId: pid, seat: 1, placement: 1 }] }); });
+    }
+    ev.rounds.push(round);
+  }
+  chooseByePlayers(orderedIds, alreadyBye, rng, n) {
+    if (n <= 0) return [];
+    let cand = orderedIds.slice().reverse().filter((id) => !alreadyBye.has(id));
+    if (cand.length < n) cand = orderedIds.slice().reverse();
+    const pool = cand.slice(0, Math.max(8, n * 4)); this.shuffle(pool, rng); return pool.slice(0, n);
+  }
+  buildPods(rows, podSizes, alreadyPlayed, rng, byeSet) {
+    let remaining = [];
+    let i = 0;
+    while (i < rows.length) { const pts = rows[i].points; let j = i; while (j < rows.length && rows[j].points === pts) j++; const bucket = rows.slice(i, j).map((r) => r.playerId); this.shuffle(bucket, rng); remaining = remaining.concat(bucket); i = j; }
+    remaining = remaining.filter((id) => !byeSet.has(id));
+    const pods = [];
+    for (const size of podSizes) {
+      if (!remaining.length) break;
+      const pod = [remaining.shift()];
+      while (pod.length < size && remaining.length) {
+        const window = remaining.slice(0, Math.max(10, size * 4));
+        const shuffled = window.slice(); this.shuffle(shuffled, rng);
+        let pick = null, best = null;
+        for (const pid of shuffled) { const repeats = pod.reduce((acc, p) => acc + (alreadyPlayed[p] && alreadyPlayed[p].has(pid) ? 1 : 0), 0); const cost = [repeats, window.indexOf(pid), rng()]; if (best === null || this.cmpTuple(cost, best) < 0) { best = cost; pick = pid; } }
+        remaining.splice(remaining.indexOf(pick), 1); pod.push(pick);
+      }
+      pods.push(pod);
+    }
+    return pods;
+  }
+
+  podReported(pod) { return pod.isBye || pod.isDraw || pod.seats.every((s) => s.placement != null); }
+  roundComplete(round) { return round.pods.length > 0 && round.pods.every((p) => this.podReported(p)); }
+
+  swapInRound(ev, ri, pidA, pidB) {
+    const round = ev.rounds[ri]; let sa = null, sb = null, pa = null, pb = null;
+    round.pods.forEach((pod) => pod.seats.forEach((s) => { if (s.playerId === pidA) { sa = s; pa = pod; } if (s.playerId === pidB) { sb = s; pb = pod; } }));
+    if (!sa || !sb) return;
+    const t = sa.playerId; sa.playerId = sb.playerId; sb.playerId = t;
+    [pa, pb].forEach((pod) => { if (pod) { pod.isDraw = false; pod.seats.forEach((x) => x.placement = null); } });
+  }
+  csv(s) { s = String(s == null ? "" : s); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+  standingsText(ev, rows) {
+    const lines = [ev.name + " \u2014 Standings", ""];
+    rows.forEach((r, i) => { lines.push((i + 1) + ". " + r.name + " \u2014 " + (r.commander || "\u2014") + " \u2014 " + r.points + " pts (" + r.gw + "W)"); });
+    return lines.join("\n");
+  }
+  downloadCsv(ev, rows) {
+    const head = ["Rank", "Player", "Commander", "Points", "Games", "Wins", "GW%", "OGW%", "OOGW%", "PodWins"];
+    const lines = [head.join(",")];
+    rows.forEach((r, i) => { lines.push([i + 1, this.csv(r.name), this.csv(r.commander || ""), r.points, r.gp, r.gw, (r.gwp * 100).toFixed(1), (r.ogwp * 100).toFixed(1), (r.oogwp * 100).toFixed(1), r.podWins].join(",")); });
+    try { const blob = new Blob([lines.join("\n")], { type: "text/csv" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); a.href = url; a.download = (ev.name || "event").replace(/[^a-z0-9]+/gi, "_") + "_standings.csv"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); } catch (e) {}
+  }
+  setWinner(ev, ri, pi, seatIdx) { const pod = ev.rounds[ri].pods[pi]; pod.isDraw = false; pod.seats.forEach((s, i) => s.placement = i === seatIdx ? 1 : 2); }
+  setDraw(ev, ri, pi) { const pod = ev.rounds[ri].pods[pi]; pod.isDraw = true; pod.seats.forEach((s) => s.placement = null); }
+  clearPod(ev, ri, pi) { const pod = ev.rounds[ri].pods[pi]; pod.isDraw = false; pod.seats.forEach((s) => s.placement = null); }
+
+  seedDemo() {
+    const ev = this.newEvent("Friday Night Commander");
+    [["Marcus Lo", "Najeela, the Blade-Blossom"], ["Elena Vasquez", "Yuriko, the Tiger's Shadow"], ["Devon Reyes", "Tymna // Thrasios"], ["Priya Anand", "Kinnan, Bonder Prodigy"], ["Chris Tan", "Atraxa, Grand Unifier"], ["Aisha Khan", "Kenrith, the Returned King"], ["Ryan Mitchell", "Sisay, Weatherlight Captain"], ["Jordan Lee", "Kraum // Tevesh Szat"], ["Bella Rossi", "Derevi, Empyrial Tactician"], ["Omar Haddad", "Tivit, Seller of Secrets"], ["Sofia Romano", "Malcolm // Tana"]].forEach((p) => this.addPlayer(ev, p[0], p[1]));
+    ev.startedAt = Date.now();
+    ev.maxRounds = this.suggestRounds(ev.players.length);
+    this.pairRound(ev, false);
+    const r0 = ev.rounds[0];
+    r0.pods.forEach((pod) => { if (!pod.isBye) { pod.seats.forEach((s, i) => s.placement = i === 0 ? 1 : 2); } });
+    r0.completed = true;
+    this.pairRound(ev, false);
+    return [ev];
+  }
+
+  patchNotesData() {
+    return [
+      { version: "1.0", date: "2026", title: "First public release", notes: [
+        "Run full Swiss-pod EDH events entirely offline \u2014 no internet, no accounts.",
+        "Real cEDH scoring (Win 5 / Draw 1 / Bye 5) with the full tie-breaker chain.",
+        "Standings with a tap-to-open \u201cwhy am I ranked here\u201d explanation and Top-N cut line.",
+        "Commander entry via Scryfall autocomplete, including partner // pairs.",
+        "Community profiles \u2014 lifetime and per-commander win/loss records.",
+        "Drop / re-add players, edit pods (swap), and cut to finals.",
+        "Export standings (copy or CSV) and a second-monitor live Present board.",
+        "Fullscreen pop-out round timer for a projector.",
+      ] },
+      { version: "0.9", date: "Beta", title: "Closed beta", notes: [
+        "Core event creation, Swiss pairing, and result entry.",
+        "Initial standings and scoring engine.",
+      ] },
+    ];
+  }
+
+  communityList() {
+    const people = {};
+    this.state.events.forEach((ev) => {
+      const pmap = {}; ev.players.forEach((p) => pmap[p.id] = p);
+      ev.rounds.forEach((r) => r.pods.forEach((pod) => {
+        const tied = (!pod.isBye && !pod.isDraw) ? this.tiedPlacements(pod.seats) : null;
+        pod.seats.forEach((s) => {
+          const pl = pmap[s.playerId]; if (!pl) return;
+          const key = (pl.name || "").trim().toLowerCase(); if (!key) return;
+          const person = people[key] || (people[key] = { key, name: (pl.name || "").trim(), evs: new Set(), wins: 0, losses: 0, draws: 0, byes: 0, commanders: {} });
+          person.evs.add(ev.id);
+          const cmd = ((pl.commander || "").trim()) || "Unknown";
+          const c = person.commanders[cmd] || (person.commanders[cmd] = { commander: cmd, wins: 0, losses: 0, draws: 0, byes: 0 });
+          let outcome = null;
+          if (pod.isBye) outcome = "byes";
+          else if (pod.isDraw) outcome = "draws";
+          else if (s.placement == null) outcome = null;
+          else if (s.placement === 1) outcome = (tied && tied.has(1)) ? "draws" : "wins";
+          else outcome = "losses";
+          if (!outcome) return;
+          person[outcome]++; c[outcome]++;
+        });
+      }));
+    });
+    return Object.values(people);
+  }
+
+  fetchCmdSuggest(raw) {
+    const parts = String(raw || "").split("//");
+    const seg = parts[parts.length - 1].trim();
+    if (this._cmdTimer) clearTimeout(this._cmdTimer);
+    if (seg.length < 2) { this.setState({ cmdSuggestNames: [] }); return; }
+    this._cmdTimer = setTimeout(() => {
+      const want = seg;
+      fetch("https://api.scryfall.com/cards/autocomplete?q=" + encodeURIComponent(seg))
+        .then((r) => r.json())
+        .then((d) => {
+          const cur = String(this.state.addCmd || "").split("//");
+          if (cur[cur.length - 1].trim() !== want) return; // stale response
+          const names = d && Array.isArray(d.data) ? d.data.slice(0, 10) : [];
+          this.setState({ cmdSuggestNames: names });
+        })
+        .catch(() => { /* offline: free-type, no suggestions */ });
+    }, 220);
+  }
+  pickKnownPlayer(name, commander) {
+    this.setState((s) => ({ addName: name, addCmd: commander ? commander : s.addCmd, cmdSuggestNames: [], addNameFocused: false }));
+  }
+  pickCmd(name) {
+    if (name.indexOf("//") >= 0) { this.setState({ addCmd: name, cmdSuggestNames: [] }); return; } // split/DFC card is a complete name, not a partner segment
+    const parts = String(this.state.addCmd || "").split("//");
+    parts[parts.length - 1] = name;
+    const joined = parts.length > 1 ? parts.map((p) => p.trim()).filter(Boolean).join(" // ") : name;
+    this.setState({ addCmd: joined, cmdSuggestNames: [] });
+  }
+
+  timerKey(evId, ri) { return "forgepod_timer_" + evId + "_" + ri; }
+  getTimer(evId, ri, total) {
+    try { const raw = localStorage.getItem(this.timerKey(evId, ri)); if (raw) { const t = JSON.parse(raw); if (typeof t.total !== "number") t.total = total; if (typeof t.paused !== "number") t.paused = t.total; return t; } } catch (e) {}
+    return { endAt: null, running: false, total: total, paused: total };
+  }
+  writeTimer(evId, ri, t) { try { localStorage.setItem(this.timerKey(evId, ri), JSON.stringify(t)); } catch (e) {} }
+  timerRemaining(t) { return (t.running && t.endAt) ? Math.max(0, Math.round((t.endAt - Date.now()) / 1000)) : t.paused; }
+  toggleTimerFor(evId, ri, total) { const cur = this.getTimer(evId, ri, total); const r = this.timerRemaining(cur); if (cur.running) { this.writeTimer(evId, ri, { total: cur.total, running: false, paused: r, endAt: null }); } else { this.writeTimer(evId, ri, { total: cur.total, running: true, paused: r, endAt: Date.now() + r * 1000 }); } this.forceUpdate(); }
+  resetTimerFor(evId, ri, total) { this.writeTimer(evId, ri, { endAt: null, running: false, total: total, paused: total }); this.forceUpdate(); }
+  fmt(sec) { sec = Math.max(0, sec | 0); const m = Math.floor(sec / 60); const s = sec % 60; return m + ":" + String(s).padStart(2, "0"); }
+  initials(n) { return (n || "").split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join(""); }
+  fmtPct(x) { return (x * 100).toFixed(1) + "%"; }
+
+  openEvent(id) { this.setState({ view: "event", eventId: id, roundIdx: null, expandId: null, renameMode: false, editPods: false }); }
+  openRound(ri) { const ev = this.curEvent(); const key = ev.id + "-" + ri; this.setState({ view: "round", roundIdx: ri, timerLeft: (ev.timerMinutes || 75) * 60, timerRunning: false, timerKey: key, editPods: false }); }
+
+  renderVals() {
+    const view = this.state.view;
+    const vm = {
+      goDashboard: () => this.setState({ view: "dashboard", eventId: null, roundIdx: null }),
+      appVersion: "v" + this.APP_VERSION,
+      isPatchNotes: view === "patchnotes",
+      goPatchNotes: (e) => { if (e && e.stopPropagation) e.stopPropagation(); this.setState({ view: "patchnotes" }); },
+      isDashboard: view === "dashboard",
+      isEvent: view === "event",
+      isRound: view === "round",
+      isDisplay: view === "display",
+      isCommunity: view === "community",
+      isProfile: view === "profile",
+      goCommunity: () => this.setState({ view: "community", personKey: null }),
+      isTimerDisplay: view === "timerdisplay",
+      showChrome: view !== "display" && view !== "timerdisplay",
+      crumbEvent: view === "event" || view === "round",
+      crumbRound: view === "round",
+      crumbEventName: "", crumbRoundName: "",
+      openCurrentEvent: () => this.openEvent(this.state.eventId),
+    };
+    const ev = this.curEvent();
+    if (ev) { vm.crumbEventName = ev.name; }
+
+    if (view === "display") {
+      const dev = this.state.events.find((e) => e.id === this.state.displayEventId);
+      vm.exitDisplay = () => { try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) {} this.setState({ view: "event", eventId: this.state.displayEventId }); };
+      if (!dev) { vm.dispName = "Event not found"; vm.dispSub = "Close this window"; vm.dispRows = []; return vm; }
+      vm.dispName = dev.name;
+      const lastR = dev.rounds[dev.rounds.length - 1];
+      vm.dispSub = dev.finishedAt ? "Final standings" : (lastR ? (lastR.isFinals ? "Finals in progress" : (this.roundComplete(lastR) ? "Round " + lastR.number + " complete \u2014 pairing soon" : "Round " + lastR.number + " in progress")) : "Not started");
+      const rows = this.computeStandings(dev);
+      const n = dev.players.filter((p) => p.active).length;
+      const cut = n >= 8 ? 4 : 0;
+      vm.dispCutLabel = "Top " + cut + " cut";
+      vm.dispRows = rows.map((r, i) => {
+        const rank = i + 1; const inCut = cut && rank <= cut;
+        return { rank, name: r.name, commander: r.commander || "\u2014", points: r.points, rankStyle: rank === 1 ? "color:#1a212c;background:#f5b942;" : (inCut ? "color:#7aa2ff;background:rgba(59,130,246,.16);" : "color:#9aa6b8;background:rgba(255,255,255,.05);"), rowStyle: inCut ? "border-color:rgba(59,130,246,.22);" : "", showCut: cut && rank === cut && rank < rows.length && !dev.finishedAt };
+      });
+      return vm;
+    }
+
+    if (view === "patchnotes") {
+      vm.currentVersion = "v" + this.APP_VERSION;
+      vm.patchNotes = this.patchNotesData().map((p) => ({ version: "v" + p.version, date: p.date, title: p.title, notes: p.notes }));
+      return vm;
+    }
+
+    if (view === "community") {
+      const list = this.communityList().map((p) => {
+        const g = p.wins + p.losses + p.draws;
+        return { key: p.key, name: p.name, initials: this.initials(p.name), events: p.evs.size, record: p.wins + "\u2013" + p.losses + "\u2013" + p.draws, games: g, winPct: g ? p.wins / g : 0, winPctStr: g ? Math.round(p.wins / g * 100) + "%" : "\u2014", onOpen: () => this.setState({ view: "profile", personKey: p.key }) };
+      });
+      list.sort((a, b) => b.winPct - a.winPct || b.games - a.games || a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+      vm.community = list;
+      vm.communityEmpty = list.length === 0;
+      return vm;
+    }
+
+    if (view === "profile") {
+      const p = this.communityList().find((x) => x.key === this.state.personKey);
+      vm.backToCommunity = () => this.setState({ view: "community" });
+      if (!p) { vm.profMissing = true; vm.prof = { name: "Player not found", initials: "?", events: 0, record: "", winPctStr: "\u2014", wins: 0, losses: 0, draws: 0, byes: 0 }; vm.profCommanders = []; return vm; }
+      const g = p.wins + p.losses + p.draws;
+      vm.prof = { name: p.name, initials: this.initials(p.name), events: p.evs.size, record: p.wins + "\u2013" + p.losses + "\u2013" + p.draws, winPctStr: g ? Math.round(p.wins / g * 100) + "%" : "\u2014", wins: p.wins, losses: p.losses, draws: p.draws, byes: p.byes };
+      vm.profByes = p.byes > 0;
+      vm.profCommanders = Object.values(p.commanders).map((c) => {
+        const cg = c.wins + c.losses + c.draws;
+        return { commander: c.commander, record: c.wins + "\u2013" + c.losses + "\u2013" + c.draws, games: cg, winPct: cg ? c.wins / cg : 0, winPctStr: cg ? Math.round(c.wins / cg * 100) + "%" : "\u2014", bar: cg ? Math.round(c.wins / cg * 100) : 0 };
+      }).sort((a, b) => b.games - a.games || b.winPct - a.winPct);
+      return vm;
+    }
+
+    if (view === "timerdisplay") {
+      const dev = this.state.events.find((e) => e.id === this.state.timerEv);
+      const ri = this.state.timerRi;
+      const total = ((dev && dev.timerMinutes) || 75) * 60;
+      const t = this.getTimer(this.state.timerEv, ri, total);
+      const rem = this.timerRemaining(t);
+      vm.tdDisplay = this.fmt(rem);
+      vm.tdName = dev ? dev.name : "";
+      vm.tdRound = (dev && dev.rounds[ri]) ? (dev.rounds[ri].isFinals ? "Finals" : "Round " + dev.rounds[ri].number) : "";
+      vm.tdBtnLabel = t.running ? "Pause" : "Start";
+      vm.tdColor = rem === 0 ? "#ff6b6b" : (rem <= 60 ? "#f5b942" : "#f7fafc");
+      vm.tdToggle = () => this.toggleTimerFor(this.state.timerEv, ri, total);
+      vm.tdReset = () => this.resetTimerFor(this.state.timerEv, ri, total);
+      vm.tdExit = () => { try { if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen(); } catch (e) {} this.setState({ view: "round", roundIdx: ri, eventId: this.state.timerEv }); };
+      return vm;
+    }
+
+    if (view === "dashboard") {
+      vm.showCreate = this.state.showCreate;
+      vm.createBtnLabel = this.state.showCreate ? "Close" : "+ New event";
+      vm.newName = this.state.newName;
+      vm.toggleCreate = () => this.setState((s) => ({ showCreate: !s.showCreate }));
+      vm.onNewName = (e) => { const v = e.target.value; this.setState({ newName: v }); };
+      vm.onCreateEvent = () => { const nm = (this.state.newName || "").trim() || "Untitled event"; const e = this.newEvent(nm); this.state.events.unshift(e); this.setState({ newName: "", showCreate: false }); this.persist(); this.openEvent(e.id); };
+      vm.events = this.state.events.map((e) => {
+        const status = e.finishedAt ? "Complete" : (e.startedAt ? "Round " + e.rounds.length : "Setup");
+        const ss = e.finishedAt ? "color:#7ee2a8;background:rgba(74,222,128,.12);" : (e.startedAt ? "color:#7aa2ff;background:rgba(59,130,246,.14);" : "color:#9aa6b8;background:rgba(255,255,255,.06);");
+        return { name: e.name, meta: e.players.length + " players" + (e.startedAt ? " \u00b7 " + (e.format === "swiss" ? "Swiss" : e.format) : ""), status, statusStyle: ss, onOpen: () => this.openEvent(e.id) };
+      });
+      vm.noEvents = this.state.events.length === 0;
+      return vm;
+    }
+
+    if (view === "event" && ev) {
+      const started = !!ev.startedAt;
+      vm.ev = { name: ev.name, statusStyle: ev.finishedAt ? "color:#7ee2a8;background:rgba(74,222,128,.12);" : (started ? "color:#7aa2ff;background:rgba(59,130,246,.14);" : "color:#9aa6b8;background:rgba(255,255,255,.06);"), status: ev.finishedAt ? "Complete" : (started ? "In progress" : "Setup"), meta: started ? ((ev.format === "swiss" ? "Swiss" : ev.format) + " \u00b7 " + ev.players.length + " players \u00b7 best of " + (ev.maxRounds || "?")) : "Add players, then start" };
+      vm.eventNotStarted = !started;
+      vm.eventStarted = started;
+      vm.playerCount = ev.players.length;
+      vm.renaming = this.state.renameMode;
+      vm.notRenaming = !this.state.renameMode;
+      vm.renameValue = this.state.renameValue;
+      vm.onRename = () => this.setState({ renameMode: true, renameValue: ev.name });
+      vm.onRenameInput = (e) => { const v = e.target.value; this.setState({ renameValue: v }); };
+      vm.onRenameSave = () => { const v = (this.state.renameValue || "").trim(); if (v) ev.name = v; this.setState({ renameMode: false }); this.persist(); };
+      vm.onDeleteEvent = () => { if (!window.confirm('Delete "' + ev.name + '"? This removes all its rounds and results and cannot be undone.')) return; const idx = this.state.events.findIndex((e) => e.id === ev.id); if (idx >= 0) this.state.events.splice(idx, 1); this.persist(); this.setState({ view: "dashboard", eventId: null, renameMode: false }); };
+
+      if (!started) {
+        vm.roster = ev.players.map((p) => ({ name: p.name, commander: p.commander || "\u2014", initials: this.initials(p.name), onRemove: () => { ev.players = ev.players.filter((x) => x.id !== p.id); this.persist(); } }));
+        vm.noPlayers = ev.players.length === 0;
+        vm.addName = this.state.addName; vm.addCmd = this.state.addCmd;
+        vm.onAddName = (e) => { const v = e.target.value; this.setState({ addName: v }); };
+        const knownPeople = this.communityList();
+        const nq = (this.state.addName || "").trim().toLowerCase();
+        const existingNames = new Set(ev.players.map((p) => (p.name || "").trim().toLowerCase()));
+        let nameSuggest = [];
+        if (this.state.addNameFocused || nq.length >= 1) {
+          let pool = knownPeople.filter((p) => !existingNames.has(p.name.toLowerCase()));
+          if (nq.length >= 1) pool = pool.filter((p) => p.name.toLowerCase().indexOf(nq) >= 0 && p.name.toLowerCase() !== nq);
+          pool.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
+          nameSuggest = pool.slice(0, 20).map((p) => {
+            const cmds = Object.values(p.commanders); let usual = ""; let best = -1;
+            cmds.forEach((c) => { const g = c.wins + c.losses + c.draws + c.byes; if (g > best) { best = g; usual = c.commander; } });
+            const u = (usual && usual !== "Unknown") ? usual : "";
+            return { name: p.name, sub: u || "no commander on file", onPick: () => this.pickKnownPlayer(p.name, u) };
+          });
+        }
+        vm.nameSuggest = nameSuggest;
+        vm.showNameSuggest = nameSuggest.length > 0;
+        vm.onAddNameFocus = () => this.setState({ addNameFocused: true });
+        vm.onAddNameBlur = () => this.setState({ addNameFocused: false });
+        vm.onAddCmd = (e) => { const v = e.target.value; this.setState({ addCmd: v }); this.fetchCmdSuggest(v); };
+        vm.showCmdSuggest = (this.state.cmdSuggestNames || []).length > 0;
+        vm.cmdSuggest = (this.state.cmdSuggestNames || []).map((n) => ({ name: n, onPick: () => this.pickCmd(n) }));
+        vm.onAddPlayer = () => { const nm = (this.state.addName || "").trim(); if (!nm) return; this.addPlayer(ev, nm, (this.state.addCmd || "").trim()); this.setState({ addName: "", addCmd: "", cmdSuggestNames: [] }); this.persist(); };
+        const can = ev.players.length >= 4;
+        vm.startLabel = can ? "Start Tournament" : "Need " + (4 - ev.players.length) + " more player" + (4 - ev.players.length === 1 ? "" : "s");
+        vm.startStyle = can ? "background:#3b82f6;color:#fff;" : "background:rgba(255,255,255,.05);color:#7c8696;cursor:default;";
+        vm.onStart = () => { if (ev.players.length < 4) return; ev.startedAt = Date.now(); ev.maxRounds = this.suggestRounds(ev.players.length); this.pairRound(ev, false); this.persist(); this.openRound(ev.rounds.length - 1); };
+      } else {
+        const swissRounds = ev.rounds.filter((r) => !r.isFinals).length;
+        const hasFinals = ev.rounds.some((r) => r.isFinals);
+        vm.roundList = ev.rounds.map((r, ri) => ({ label: r.isFinals ? "Finals" : "Round " + r.number, status: r.completed ? "Completed" : (this.roundComplete(r) ? "Ready" : "In progress"), style: r.completed ? "color:#7ee2a8;background:rgba(74,222,128,.12);" : (this.roundComplete(r) ? "color:#f5b942;background:rgba(245,185,66,.14);" : "color:#9aa6b8;background:rgba(255,255,255,.06);"), onOpen: () => this.openRound(ri) }));
+        const lastRound = ev.rounds[ev.rounds.length - 1];
+        const lastDone = lastRound && this.roundComplete(lastRound);
+        const moreSwiss = swissRounds < (ev.maxRounds || 99);
+        vm.canPairNext = !ev.finishedAt && !hasFinals && lastDone && moreSwiss;
+        const n = ev.players.filter((p) => p.active).length;
+        vm.cutSize = n >= 8 ? 4 : (n >= 4 ? Math.min(4, n) : n);
+        vm.canCut = !ev.finishedAt && !hasFinals && lastDone && !moreSwiss && n >= 4;
+        vm.canFinalize = !ev.finishedAt && hasFinals && lastDone;
+        vm.onPairNext = () => { if (lastRound) lastRound.completed = true; this.pairRound(ev, false); this.persist(); this.openRound(ev.rounds.length - 1); };
+        vm.onCut = () => { if (lastRound) lastRound.completed = true; this.pairRound(ev, true, vm.cutSize); this.persist(); this.openRound(ev.rounds.length - 1); };
+        vm.onFinalize = () => { if (lastRound) lastRound.completed = true; ev.finishedAt = Date.now(); this.persist(); };
+        vm.pairHint = !lastDone && !ev.finishedAt;
+        vm.pairHintText = "Finish entering results in the current round to continue.";
+        vm.presentStandings = () => { this.setState({ view: "display", displayEventId: ev.id }); try { const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); } catch (e) {} };
+        vm.activeCount = ev.players.filter((p) => p.active).length;
+        vm.managePlayers = ev.players.map((p) => ({
+          name: p.name, commander: p.commander || "\u2014",
+          rowStyle: p.active ? "" : "opacity:.55;",
+          nameStyle: p.active ? "" : "text-decoration:line-through;color:#9aa6b8;",
+          btnLabel: p.active ? "Drop" : "Re-add",
+          btnStyle: p.active ? "border:1px solid rgba(255,107,107,.4);background:rgba(255,107,107,.1);color:#ff9b9b;" : "border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.1);color:#7ee2a8;",
+          onToggle: () => { p.active = !p.active; this.persist(); },
+        }));
+        const exportRows = this.computeStandings(ev);
+        vm.copyLabel = this.state.copiedStandings ? "Copied" : "Copy";
+        vm.onCopyStandings = () => { const txt = this.standingsText(ev, exportRows); try { if (navigator.clipboard) navigator.clipboard.writeText(txt); } catch (e) {} this.setState({ copiedStandings: true }); if (this._cp) clearTimeout(this._cp); this._cp = setTimeout(() => this.setState({ copiedStandings: false }), 1500); };
+        vm.onExportCsv = () => { this.downloadCsv(ev, exportRows); };
+        const droppedP = ev.players.filter((p) => !p.active);
+        vm.hasDropped = droppedP.length > 0;
+        vm.droppedPlayers = droppedP.map((p) => ({ name: p.name, onReadd: () => { p.active = true; this.persist(); } }));
+
+        const cut = vm.canCut || hasFinals ? vm.cutSize : (swissRounds >= (ev.maxRounds || 99) ? vm.cutSize : null);
+        const rows = this.computeStandings(ev);
+        vm.standingsTitle = ev.finishedAt ? "Final standings" : "Standings";
+        vm.noStandings = rows.length === 0;
+        const order = [{ k: "ogwp", label: "OGW", pct: true }, { k: "gwp", label: "GW", pct: true }, { k: "oogwp", label: "OOGW", pct: true }, { k: "podWins", label: "Pod W", pct: false }];
+        vm.standings = rows.map((r, i) => {
+          const rank = i + 1;
+          const expanded = this.state.expandId === r.playerId;
+          const sameAbove = i > 0 && rows[i - 1].points === r.points;
+          const sameBelow = i < rows.length - 1 && rows[i + 1].points === r.points;
+          let narrative = "", decisive = null;
+          if (!sameAbove && !sameBelow) { narrative = "Clear on points \u2014 " + r.points + " pts, no tie."; }
+          else { const tgt = sameAbove ? rows[i - 1] : rows[i + 1]; const rel = sameAbove ? "behind" : "ahead of"; let m = order.find((o) => r[o.k] !== tgt[o.k]) || order[order.length - 1]; decisive = m.k; const a = m.pct ? this.fmtPct(r[m.k]) : r[m.k]; const b = m.pct ? this.fmtPct(tgt[m.k]) : tgt[m.k]; const lbl = { ogwp: "Opp. Game Win %", gwp: "Game Win %", oogwp: "Opp. Opp. GW %", podWins: "Pod Wins" }[m.k]; narrative = "Tied on " + r.points + " pts. Ranked " + rel + " " + tgt.name + " on " + lbl + " (" + a + " vs " + b + ")."; }
+          const inCut = cut && rank <= cut;
+          return {
+            rank, name: r.name, commander: r.commander || "\u2014", points: r.points, expanded,
+            rankStyle: rank === 1 ? "color:#1a212c;background:#f5b942;" : (inCut ? "color:#7aa2ff;background:rgba(59,130,246,.16);" : "color:#9aa6b8;background:rgba(255,255,255,.05);"),
+            ptsStyle: "color:#f7fafc;",
+            rowStyle: expanded ? "background:rgba(255,255,255,.03);" : "",
+            chevronStyle: expanded ? "transform:rotate(90deg);" : "",
+            onToggle: () => this.setState((s) => ({ expandId: s.expandId === r.playerId ? null : r.playerId })),
+            canDrop: !ev.finishedAt,
+            onDrop: (e) => { if (e && e.stopPropagation) e.stopPropagation(); const pl = ev.players.find((x) => x.id === r.playerId); if (pl) { pl.active = false; this.persist(); } },
+            narrative,
+            metrics: order.map((o) => ({ label: o.label, value: o.pct ? this.fmtPct(r[o.k]) : r[o.k], style: o.k === decisive ? "color:#7aa2ff;background:rgba(59,130,246,.16);" : "color:#c7d0dd;background:rgba(255,255,255,.04);" })),
+          };
+        });
+      }
+      return vm;
+    }
+
+    if (view === "round" && ev) {
+      const ri = this.state.roundIdx;
+      const round = ev.rounds[ri];
+      vm.ev = { name: ev.name };
+      vm.roundName = round.isFinals ? "Finals" : "Round " + round.number;
+      vm.presentStandings = () => { this.setState({ view: "display", displayEventId: ev.id }); try { const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); } catch (e) {} };
+      const tTotal = (ev.timerMinutes || 75) * 60;
+      const tState = this.getTimer(ev.id, ri, tTotal);
+      vm.timerDisplay = this.fmt(this.timerRemaining(tState));
+      vm.timerBtnLabel = tState.running ? "Pause" : "Start";
+      vm.toggleTimer = () => this.toggleTimerFor(ev.id, ri, tTotal);
+      vm.resetTimer = () => this.resetTimerFor(ev.id, ri, tTotal);
+      vm.popOutTimer = () => { this.setState({ view: "timerdisplay", timerEv: ev.id, timerRi: ri }); try { const el = document.documentElement; if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); } catch (e) {} };
+      const scoring = round.pods.filter((p) => !p.isBye);
+      const reported = round.pods.filter((p) => this.podReported(p)).length;
+      vm.podCount = round.pods.length;
+      vm.reportedCount = reported;
+      vm.progressPct = (round.pods.length ? reported / round.pods.length * 100 : 0).toFixed(1) + "%";
+      const allDone = this.roundComplete(round);
+      vm.roundDoneLabel = allDone ? "Back to event \u2192" : (round.pods.length - reported) + " pod" + (round.pods.length - reported === 1 ? "" : "s") + " left";
+      vm.roundDoneStyle = allDone ? "min-height:44px;padding:0 20px;border-radius:12px;border:none;background:#3b82f6;color:#fff;font-weight:800;font-size:14px;cursor:pointer;" : "min-height:44px;padding:0 20px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#7c8696;font-weight:700;font-size:14px;cursor:default;";
+      vm.onRoundDone = () => { if (allDone) this.openEvent(ev.id); };
+
+      const nameOf = {}; ev.players.forEach((p) => nameOf[p.id] = p);
+      const allRoundPlayers = [];
+      round.pods.forEach((pod) => { if (pod.isBye) return; pod.seats.forEach((s) => allRoundPlayers.push({ id: s.playerId, name: (nameOf[s.playerId] || {}).name || "?" })); });
+      vm.editPodsLabel = this.state.editPods ? "Done editing" : "Edit pods";
+      vm.toggleEditPods = () => this.setState((s) => ({ editPods: !s.editPods }));
+      vm.pods = round.pods.map((pod, pi) => {
+        const reportedP = this.podReported(pod);
+        const isDraw = pod.isDraw;
+        const players = pod.seats.map((s, si) => {
+          let st = "unreported";
+          if (pod.isBye) st = "win";
+          else if (isDraw) st = "draw";
+          else if (s.placement === 1) st = "win";
+          else if (s.placement != null) st = "loss";
+          const bar = { unreported: "background:transparent;", win: "background:#f5b942;", loss: "background:rgba(255,255,255,.06);", draw: "background:#3b82f6;" }[st];
+          const nameStyle = { unreported: "color:#f7fafc;font-weight:600;", win: "color:#f7d27a;font-weight:800;", loss: "color:#aeb8c6;font-weight:600;", draw: "color:#f7fafc;font-weight:600;" }[st];
+          const pill = { win: { label: pod.isBye ? "Bye" : "Winner", style: "color:#f5b942;background:rgba(245,185,66,.14);" }, loss: { label: "Defeated", style: "color:#9aa6b8;background:rgba(255,255,255,.05);" }, draw: { label: "Draw", style: "color:#7aa2ff;background:rgba(59,130,246,.14);" } }[st];
+          const pl = nameOf[s.playerId] || { name: "?", commander: "" };
+          return { name: pl.name, commander: pl.commander || "", seat: s.seat, barStyle: bar, nameStyle, showWin: st === "unreported" && !pod.isBye && !this.state.editPods, showPill: st !== "unreported" && !this.state.editPods, pillLabel: pill ? pill.label : "", pillStyle: pill ? pill.style : "", onWin: () => { this.setWinner(ev, ri, pi, si); this.persist(); }, editMode: this.state.editPods && !pod.isBye, swapOptions: allRoundPlayers.filter((x) => x.id !== s.playerId), onSwap: (e) => { const other = Number(e.target.value); if (!other) return; this.swapInRound(ev, ri, s.playerId, other); this.persist(); } };
+        });
+        return {
+          label: pod.isBye ? "Pod " + pod.podNumber + " \u00b7 Bye" : "Pod " + pod.podNumber,
+          statusLabel: pod.isBye ? "Bye" : (reportedP ? (isDraw ? "Draw" : "Reported") : "In progress"),
+          chipStyle: pod.isBye ? "color:#7aa2ff;background:rgba(59,130,246,.14);" : (reportedP ? "color:#7ee2a8;background:rgba(74,222,128,.12);" : "color:#9aa6b8;background:rgba(255,255,255,.06);"),
+          players,
+          isUnreported: !reportedP && !pod.isBye,
+          isReported: reportedP && !pod.isBye,
+          reportedNote: isDraw ? "Full-pod draw recorded" : "Result recorded",
+          onDraw: () => { this.setDraw(ev, ri, pi); this.persist(); },
+          onClear: () => { this.clearPod(ev, ri, pi); this.persist(); },
+        };
+      });
+      return vm;
+    }
+
+    return vm;
+  }
+}
+</script>
+</body>
+</html>
