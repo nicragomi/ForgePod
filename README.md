@@ -4,7 +4,7 @@
 
 ForgePod is a single, self-contained web app for running Swiss-pod EDH/cEDH events at your local game store. No install, no accounts, no internet required. Everything is saved on the device you run it on.
 
-👉 **Live app:** _(your GitHub Pages URL, e.g. https://your-username.github.io/forgepod-app/)_
+👉 **Live app:** _(your GitHub Pages URL, e.g. https://your-username.github.io/ForgePod/)_
 
 ---
 
